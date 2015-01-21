@@ -203,7 +203,7 @@ get_invoice_item() ->
 %%%----------------------------------------------------------------------
 verify_default_card(Card, CheckCVC) ->
   case CheckCVC of
-    nocheck -> ?assertEqual('unchecked', Card#stripe_card.cvc_check);
+    nocheck -> ?assertEqual(unchecked, Card#stripe_card.cvc_check);
       check -> ?assertEqual(pass, Card#stripe_card.cvc_check)
   end,
   ?assertEqual(12, Card#stripe_card.exp_month),
