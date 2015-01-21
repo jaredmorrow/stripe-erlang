@@ -11,6 +11,7 @@
 -export([transfer_create/5, transfer_cancel/1]).
 -export([invoiceitem_create/4]).
 -export([gen_paginated_url/1, gen_paginated_url/2, gen_paginated_url/3, gen_paginated_url/4]).
+-export([get_all_customers/0]).
 
 -include("stripe.hrl").
 
@@ -154,6 +155,10 @@ event(EventId) ->
 customer(CustomerId) ->
   request_customer(CustomerId).
 
+%%%--------------------------------------------------------------------
+%%% InvoiceItem Support
+%%%--------------------------------------------------------------------
+
 invoiceitem(InvoiceItemId) ->
   request_invoiceitem(InvoiceItemId).
 
@@ -163,6 +168,13 @@ invoiceitem_create(Customer, Amount, Currency, Description) ->
               {currency, Currency},
               {description, Description}],
     request_invoiceitem_create(Fields).
+
+%%%--------------------------------------------------------------------
+%%% Pagination Support
+%%%--------------------------------------------------------------------
+
+get_all_customers() ->
+    request_paginated_customers().
 
 %%%--------------------------------------------------------------------
 %%% request generation and sending
@@ -225,6 +237,9 @@ request_subscription(unsubscribe, Customer, Subscription, Fields, _AtEnd = true)
 request_subscription(unsubscribe, Customer, Subscription,Fields, _AtEnd = false) ->
   request_run(gen_subscription_url(Customer, Subscription), delete, Fields).
 
+request_paginated_customers() ->
+    request_run(gen_paginated_url(customers), get, []).
+
 request_run(URL, Method, Fields) ->
   Headers = [{"X-Stripe-Client-User-Agent", ua_json()},
              {"User-Agent", "Stripe/v1 ErlangBindings/" ++ ?VSN_STR},
@@ -278,6 +293,9 @@ json_to_record(Body) when is_list(Body) orelse is_binary(Body) ->
 % Yes, these are verbose and dumb because we don't have runtime record/object
 % capabilities.  In a way, it's nice being explicit up front.
 -spec json_to_record(stripe_object_name(), proplist()) -> record().
+json_to_record(<<"list">>, DecodedResult) ->
+    Data = ?V(data),
+    #stripe_list{data = [json_to_record(Object) || Object <- Data]};
 
 json_to_record(<<"event">>, DecodedResult) ->
   Data = ?V(data),
