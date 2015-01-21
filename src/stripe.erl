@@ -269,26 +269,25 @@ resolve_status(HTTPStatus, ErrorBody) ->
                                   DecodedResult, ?NRAPI)).
 
 json_to_record(Json) when is_list(Json) andalso is_tuple(hd(Json)) ->
-  case proplists:get_value(<<"object">>, Json) of
-    <<"event">> -> json_to_event_record(Json);
-          Found -> json_to_record(Found, Json)
-  end;
+  json_to_record(proplists:get_value(<<"object">>, Json), Json);
+
 json_to_record(Body) when is_list(Body) orelse is_binary(Body) ->
   DecodedResult = mochijson2:decode(Body, [{format, proplist}]),
   json_to_record(DecodedResult).
 
-json_to_event_record(DecodedResult) ->
+% Yes, these are verbose and dumb because we don't have runtime record/object
+% capabilities.  In a way, it's nice being explicit up front.
+-spec json_to_record(stripe_object_name(), proplist()) -> record().
+
+json_to_record(<<"event">>, DecodedResult) ->
   Data = ?V(data),
   Object = proplists:get_value(<<"object">>, Data),
   ObjectName = proplists:get_value(<<"object">>, Object),
   #stripe_event{id      = ?V(id),
                 type    = ?V(type),
                 created = ?V(created),
-                data    = json_to_record(ObjectName, Object)}.
+                data    = json_to_record(ObjectName, Object)};
 
-% Yes, these are verbose and dumb because we don't have runtime record/object
-% capabilities.  In a way, it's nice being explicit up front.
--spec json_to_record(stripe_object_name(), proplist()) -> record().
 json_to_record(<<"charge">>, DecodedResult) ->
   #stripe_charge{id           = ?V(id),
                  created      = ?V(created),
