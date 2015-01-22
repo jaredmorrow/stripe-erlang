@@ -1,7 +1,7 @@
 stripe-erlang: stripe client.  erlang flavored.
 ===============================================
 
-[![Build Status](https://secure.travis-ci.org/mattsta/stripe-erlang.png)](http://travis-ci.org/mattsta/stripe-erlang)
+[![Build Status](https://secure.travis-ci.org/jaredmorrow/stripe-erlang.png)](http://travis-ci.org/jaredmorrow/stripe-erlang)
 
 Status
 ------
