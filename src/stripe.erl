@@ -305,11 +305,10 @@ request_run_all(URL) ->
   Requested = httpc:request(get, Request, [], []),
 
   case resolve(Requested) of
-    {error, Reason} ->
-      {error, Reason};
+    {error, _} = Error ->
+      Error;
     Results ->
-      HasMore = has_more(Requested),
-      {HasMore, Results}
+      {has_more(Requested), Results}
   end.
 
 %% Simple function that checks if the body has more results in a paginated query
