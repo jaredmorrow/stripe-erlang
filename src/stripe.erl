@@ -252,7 +252,10 @@ request_num_customers(Count) when Count =< ?STRIPE_LIST_LIMIT ->
 request_num_customers(Count) ->
   error_logger:error_msg("Requested ~p customers when ~p is the maximum allowed~n", [Count,
                                                                                      ?STRIPE_LIST_LIMIT]).
-
+%% Request all items in a pagination supported type
+%% This will continue to call ?STRIPE_LIST_LIMIT items
+%% until no items are remaining. If attempting to test
+%% be sure to set large timeouts for listing huge accounts
 request_all(Type) ->
   request_all(Type, []).
 request_all(Type, StartingAfter) ->
@@ -288,6 +291,12 @@ request_run(URL, Method, Fields) ->
   Requested = httpc:request(Method, Request, [], []),
   resolve(Requested).
 
+%% Much like request_run/3 except that a tuple is returned with the
+%% results indicating more results are available
+%% Returns:
+%%   {error, Reason} - Same as request_run
+%%   {false, Results} - No more results left, returns current page list
+%%   {true, Results} - There are more results left, returns current page list
 request_run_all(URL) ->
   Headers = [{"X-Stripe-Client-User-Agent", ua_json()},
              {"User-Agent", "Stripe/v1 ErlangBindings/" ++ ?VSN_STR},
@@ -299,11 +308,12 @@ request_run_all(URL) ->
     {error, Reason} ->
       {error, Reason};
     Results ->
-      HasMore = does_has_more(Requested),
+      HasMore = has_more(Requested),
       {HasMore, Results}
   end.
 
-does_has_more({ok, {{_HTTPVer, _StatusCode, _Reason}, _Headers, Body}}) ->
+%% Simple function that checks if the body has more results in a paginated query
+has_more({ok, {{_HTTPVer, _StatusCode, _Reason}, _Headers, Body}}) ->
   DecodedResult = mochijson2:decode(Body, [{format, proplist}]),
   proplists:get_value(<<"has_more">>, DecodedResult).
 
