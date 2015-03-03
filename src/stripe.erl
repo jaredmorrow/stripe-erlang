@@ -5,12 +5,14 @@
 -export([token_create/10, token_create_bank/3]).
 -export([customer_create/3, customer_get/1, customer_update/3]).
 -export([charge_customer/4, charge_card/4]).
--export([subscription_update/3, subscription_update/5, subscription_update/6, subscription_cancel/2, subscription_cancel/3]).
+-export([subscription_update/3, subscription_update/5,
+         subscription_update/6, subscription_cancel/2, subscription_cancel/3]).
 -export([customer/1, event/1, invoiceitem/1]).
 -export([recipient_create/6, recipient_update/6]).
 -export([transfer_create/5, transfer_cancel/1]).
 -export([invoiceitem_create/4]).
--export([gen_paginated_url/1, gen_paginated_url/2, gen_paginated_url/3, gen_paginated_url/4]).
+-export([gen_paginated_url/1, gen_paginated_url/2,
+         gen_paginated_url/3, gen_paginated_url/4]).
 -export([get_all_customers/0, get_num_customers/1]).
 
 -include("stripe.hrl").
@@ -250,8 +252,9 @@ request_all_customers() ->
 request_num_customers(Count) when Count =< ?STRIPE_LIST_LIMIT ->
   request_run(gen_paginated_url(customers, Count), get, []);
 request_num_customers(Count) ->
-  error_logger:error_msg("Requested ~p customers when ~p is the maximum allowed~n", [Count,
-                                                                                     ?STRIPE_LIST_LIMIT]).
+  error_logger:error_msg("Requested ~p customers when ~p is the maximum allowed~n",
+                         [Count, ?STRIPE_LIST_LIMIT]).
+
 %% Request all items in a pagination supported type
 %% This will continue to call ?STRIPE_LIST_LIMIT items
 %% until no items are remaining. If attempting to test
@@ -259,7 +262,9 @@ request_num_customers(Count) ->
 request_all(Type) ->
   request_all(Type, []).
 request_all(Type, StartingAfter) ->
-  case request_run_all(gen_paginated_url(Type, ?STRIPE_LIST_LIMIT, StartingAfter)) of
+  case request_run_all(gen_paginated_url(Type,
+                                         ?STRIPE_LIST_LIMIT,
+                                         StartingAfter)) of
     {error, Reason} ->
       {error, Reason};
     {false, Results} ->
