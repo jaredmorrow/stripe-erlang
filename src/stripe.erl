@@ -266,7 +266,7 @@ request_all(Type, StartingAfter) ->
       Results#stripe_list.data;
     {true, Results} ->
       TypeList = Results#stripe_list.data,
-      LastElement = hd(lists:reverse(TypeList)),
+      LastElement = lists:last(TypeList),
       LastElementId = get_record_id(LastElement),
       TypeList ++ request_all(Type, LastElementId)
   end.
